@@ -1,83 +1,67 @@
-# Résumé
+# myC compiler
 
-Le projet de compilation a pour objet la réalisation d'un compilateur d'un mini langage appelé pour l'occasion myC vers du code C à 3 adresses. Le langage source proposé, un mini langage C, devra donc être compilé en C à 3 adresses.
+A compiler for **myC**, a small C-like language, that outputs **three-address C code**. Built with **flex** (lexer) and **bison** (parser) in C.
 
-Il a été réalisé par le groupe GCC-de-fonctionner composé de Genty Laurent et Chataigner Johan, élèves à l'Enseirb-Matmeca en deuxième année informatique.
+> School project, ENSEIRB-MATMECA (2nd year, Computer Science), by Laurent Genty and Johan Chataigner.
 
-# Pré-requis
+## What it does
 
-Afin de faire fonctionner ce projet vous devez posséder les packages suivants :
-- make
-- gcc
-- flex
-- bison
+The compiler performs the three classic front-end passes:
 
-# Dossiers et contenu
+- **Name analysis**: every variable and function used must be declared.
+- **Type analysis**: operations must be well typed (`int`, `float`, pointers).
+- **Code generation**: the program is lowered to C in three-address form (one operation per instruction, explicit temporaries).
 
-Le projet s'organise de la sorte :
-  - `src/` : sources générant le compilateur `myc`
-    * `Attribute.c` et `Attribute.h` : permet de gérer les attributs (entier, flottants, ...) dans l'analyse de types et noms.
-    * `Table_des_chaines.c` et `Table_des_chaines.h` : permet de récupérer les noms lors de l'analyse de noms
-    * `Table_des_symboles.c` et `Table_des_symboles.h` : permet de générer des éléments dans la table des symboles regroupant toutes les variables attributs créés et garder en mémoire leur valeur, type, ... sous forme de liste chaînée
-    * `lang.y` : syntaxe du compilateur `myc`
-    * `lang.l` : lexique de compilateur `myc`
-  - `test/` : fichiers tests du compilateur `myc`
-    * `test.myc` : fichier contenant des instructions basiques permettant de verifier que les fonctions de base de l'application sont implémentées
-  - `Makefile`
-  - `compil.sh` : script shell permettant de générer le compilateur et compiler le fichier `.myc` donné en argument en `.c` et `.h`
-  - `README.md`
+## Supported features
 
-# Compilation et exécution
+| Feature | Status |
+| --- | --- |
+| Explicit variable declarations | ✅ |
+| Arbitrary arithmetic expressions | ✅ |
+| Assignments to user variables | ✅ |
+| `int` / `float` typing | ✅ |
+| Memory reads/writes through pointers | ✅ |
+| `if` / `if … else` | ✅ (block-local variables not handled) |
+| Recursive functions, `struct` | ❌ not implemented |
 
-Afin de pouvoir compiler notre programme et l'utiliser, plusieurs règles du `Makefile` peuvent être utiles :
-  - `make clean` : permet de nettoyer avant de compiler tous les fichiers produits durant la compilation
-  - `make` : compiler tous les sources permettant de créer le compilateur `myc`
-  - `make test` : compiler le fichier `test/test.myc` avec notre compilateur et générer les fichiers `.c` et `.h` correspondants
+## Example
 
-Cependant, nous avons mis en place un script permettant d'automatiser toutes ces étapes, le script `compil.sh`. En exécutant ce script avec la commande `./compil <fichier.myc>`, il va effectuer toutes les actions précédemment énoncées :
-  - vérifier que le fichier existe et est bien un fichier `.myc`
-  - compiler les sources avec `make all` et rediriger les sorties sur la sortie standard et d'erreur
-  - vérifier que les sources ont bien été compilés et le notifier sinon
-  - compiler avec notre compilateur `myc` le fichier donné en paramètre
-  - compiler avec `gcc` les fichiers `.h` et `.c` qui ont été générés par notre compilateur `myc`
-  - vérifier qu'il n'y a pas eu d'erreur
+Input (`test/test.myc`):
 
-Vérifiez à la main les contenus des fichiers `.c` et `.h` et vous verrez le résultat.
+```c
+int a, b;
+a = 1;
+b = 2;
+if (a != b) { a = b + 1; } else { b = a + 1; }
+```
 
-Concrètement, il suffit d'utiliser la commande suivante et tout se fera automatiquement : `./compil <fichier.myc>`.
+The compiler produces a `.c` / `.h` pair in three-address form, which is then compiled with `gcc` to check it is valid C.
 
-# Travail demandé
+## Getting started
 
-Le projet devra assurer :
-  - l'analyse des noms : les variables (et fonctions) utilisées sont-elles déclarées
-  - l'analyse des types : les opérations effectués sont-elles bien typées
-  - la production de code à trois addresses
+Requirements: `make`, `gcc`, `flex`, `bison`.
 
-Le compilateur `myc` produit vise à couvrir quelques éléments clès de la compilation. Il comprend notamment:
-  - un mécanisme de déclarations explicites de variables
-  - des expressions arithmétiques arbitraire de type calculatrice
-  - des lectures ou écritures mémoires via des affectations avec variable utilisateur
-  - un mécanisme de typage comprenant notamment `int` et `float`
-  - des lectures ou écritures mémoires via des pointeurs
-  - définitions et appels de fonctions récursives
-  - un mécanisme de déclaration et d'utilisation de typé structurés (`struct`)
+```bash
+./compil test/test.myc   # builds myc, compiles the .myc file, then checks the output with gcc
+```
 
-# Travail effectué
+Or step by step:
 
-Nous avons effectué différentes fonctionnalités du projet. Les voici :
-  - un mécanisme de déclarations explicite de variables : **FONCTIONNEL**
-  - des expressions arithmétiques arbitraire de type calculatrice : **FONCTIONNEL**
-  - des lectures ou écritures mémoires via des affectations avec variable utilisateur : **FONCTIONNEL**
-  - un mécanisme de typage comprenant notamment `int` et `float` : **FONCTIONNEL**
-  - des lectures ou écritures mémoires via des pointeurs : **FONCTIONNEL**
-  - les structures conditionnelles `if then else ou juste if` : : **FONCTIONNEL** (sauf gestion des variables locales aux blocks...)
+```bash
+make          # build the myc compiler
+make test     # compile test/test.myc
+make clean
+```
 
-De plus, nous avons porté notre attention concernant la qualité du rendu à savoir un code commenté et documenté.
+## Project structure
 
-# Delta entre la soutenance et le rendu
-
-Entre la version de la soutenance et le rendu, nous avons rempli différents objectifs.
-
-Tout d'abord nous avons terminé les pointeurs. Au tout départ nous pensions qu'il fallait interpréter la valeur d'un pointeur (concernant le déréférencement) cependant, il suffisait juste de le représenter et de faire en sorte qu'il compile. Ce qui fait que cela est beaucoup plus facile que ce que nous pensions.
-
-Suite à vos conseils, nous avons attaqué la partie sur les `if then else` dans la mesure où il s'agit d'une partie très intéressante et plus technique que les précédentes de la compilation.
+```
+src/
+  lang.l                      # lexer (flex)
+  lang.y                      # grammar + semantic actions (bison)
+  Attribute.{c,h}             # attributes carried during type/name analysis
+  Table_des_symboles.{c,h}    # symbol table (linked list: name, type, value)
+  Table_des_chaines.{c,h}     # string table for identifiers
+test/test.myc                 # sample program
+compil                        # build-and-check script
+```
